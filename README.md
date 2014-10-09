@@ -61,7 +61,8 @@ Here's a rails example, even if you're not a rails developer, read the code, it'
         render json: {
           policy:    s3_upload_policy,
           signature: s3_upload_signature,
-          key:       GLOBAL[:aws_key]
+          key:       GLOBAL[:aws_key],
+          bucket:    GLOBAL[:aws_bucket]
         }
       end
 
@@ -121,22 +122,25 @@ npm install ng-s3upload
 
 4. Add s3-upload directive to the wanted element, example:
   ```html
-  <div s3-upload bucket="s3Bucket" ng-model="product.remote_product_file_url"
+  <div s3-upload theme="photoBlock" ng-model="product.remote_product_file_url"
      s3-upload-options="{getOptionsUri: s3OptionsUri, folder: 'images/'}">
   ```
 
 attributes: 
-* bucket - Specify the wanted bucket
+* theme - Template for uploader
 * s3-upload-options - Provide additional options:
   * getOptionsUri - The uri of the server service that is needed to sign the request (mentioned in section Setup#4) - Required. 
   * folder - optional, specifies a folder inside the bucket the save the file to
   * enableValidation - optional, set to "false" in order to disable the field validation.
   * targetFilename - An optional attribute for the target filename. if provided the file will be renamed to the provided value instead of having the file original filename.
-  
+
+
 ## Themes
 ng-s3upload allows to customize the directive template using themes. Currently the available themes are: bootstrap2, bootstrap3
 
 #### How to?
+
+Define default theme
 
 ```javascript
 app.config(function(ngS3Config) {
@@ -144,5 +148,33 @@ app.config(function(ngS3Config) {
 });
 ```
 
-[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/asafdav/ng-s3upload/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
+Specific theme in directive
+
+```html
+<div s3-upload theme="photoBlock">
+```
+
+#### Add custom theme template
+
+Example
+
+```html
+<script type="text/ng-template" id="theme/photoBlock.html">
+  <div class="photo-block">
+    <img ng-src="{{ filename || 'http://placehold.it/400&text=photo' }}" class="img-thumbnail"/>
+    <div class="progress" style="position:absolute; width:100%; top:30%;" ng-show="attempt && !filename">
+      <div class="progress-bar progress-bar-striped" ng-class="{active: uploading}" role="progressbar" aria-valuemin="0" aria-valuemax="100" style="width: {{ progress }}%;" ng-class="barClass()">
+        <span class="sr-only">{{progress}}% Complete</span>
+      </div>
+    </div>
+    <div class="buttons-block" ng-show="filename">
+      <button type="button" class="btn btn-default">แก้ไขรูปภาพ</button>
+      <button type="button" class="btn btn-danger" ng-click="removePhoto()">ลบ</button>
+    </div>
+    <input type="file" style="display: none"/>
+  </div>
+</script>
+```
+
+PS. removePhoto() is additional function that not included at this library. Additional scopes and functions can be defined at your controller.
 
