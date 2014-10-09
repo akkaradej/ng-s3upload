@@ -19,11 +19,16 @@ angular.module('ngS3upload.directives', []).
       }],
       compile: function (element, attr, linker) {
         return {
-          pre: function ($scope, $element, $attr) {
-            if (angular.isUndefined($attr.bucket)) {
-              throw Error('bucket is a mandatory attribute');
-            }
-          },
+          //----------------------------------------
+          // [remove]
+          // get bucket name from service instead of attribute
+          //----------------------------------------
+          // pre: function ($scope, $element, $attr) {
+          //   if (angular.isUndefined($attr.bucket)) {
+          //     throw Error('bucket is a mandatory attribute');
+          //   }
+          // },
+          // [end remove] -----------------------------
           post: function (scope, element, attrs, ngModel) {
             // Build the opts array
             var opts = angular.extend({}, scope.$eval(attrs.s3UploadOptions || attrs.options));
@@ -36,11 +41,33 @@ angular.module('ngS3upload.directives', []).
               enableValidation: true,
               targetFilename: null
             }, opts);
-            var bucket = scope.$eval(attrs.bucket);
+            //----------------------------------------
+            // [remove]
+            // get bucket name from service instead of attribute
+            //----------------------------------------
+            // var bucket = scope.$eval(attrs.bucket);
+            // [end remove] -----------------------------
 
             // Bind the button click event
-            var button = angular.element(element.children()[0]),
-              file = angular.element(element.find("input")[0]);
+
+            //----------------------------------------
+            // [edit]
+            // button may be not first element, find it first
+            // if not found fallback to first child
+            //----------------------------------------
+            var button = element.find("button")[0];
+            if(button){
+              button = angular.element(button);
+            }
+            else{
+            // [end edit] ----------------------------
+              button = angular.element(element.children()[0]);
+            // ---------------------------------------
+            // [edit] 
+            }
+            // [end edit] ----------------------------
+
+            var file = angular.element(element.find("input")[0]);
             button.bind('click', function (e) {
               file[0].click();
             });
@@ -51,6 +78,14 @@ angular.module('ngS3upload.directives', []).
             };
 
             var uploadFile = function () {
+              //----------------------------------------
+              // [edit]
+              // upload next time need to clear data first
+              // remove filename and progress
+              //----------------------------------------
+              delete scope.filename;
+              delete scope.progress;
+              // [end edit] ----------------------------
               var selectedFile = file[0].files[0];
               var filename = selectedFile.name;
               var ext = filename.split('.').pop();
@@ -60,7 +95,12 @@ angular.module('ngS3upload.directives', []).
                   ngModel.$setValidity('uploading', false);
                 }
 
-                var s3Uri = 'https://' + bucket + '.s3.amazonaws.com/';
+                //----------------------------------------
+                // [edit]
+                // get bucket name from service instead of attribute
+                //----------------------------------------
+                var s3Uri = 'https://' + s3Options.bucket + '.s3.amazonaws.com/';
+                // [end edit] ----------------------------
                 var key = opts.targetFilename ? scope.$eval(opts.targetFilename) : opts.folder + (new Date()).getTime() + '-' + S3Uploader.randomString(16) + "." + ext;
                 S3Uploader.upload(scope,
                     s3Uri,
